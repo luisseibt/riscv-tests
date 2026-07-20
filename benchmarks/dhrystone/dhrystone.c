@@ -180,6 +180,71 @@ Enumeration Enum_Par_Val;
     return (false);
 } /* Func_3 */
 
-void debug_printf(const char* str, ...)
-{
+void print_char(char c) {
+    // if (hartid == 0) {
+    //     SIMDEV_SOUT_CORE0 = c;
+    // } else {
+    //     SIMDEV_SOUT_CORE1 = c;
+    // }
+    WRITE_TO_SIMDEV = c;
+}
+// void debug_printf(const char* str, ...)
+// {
+//   while (*str) {
+//         print_char(*str++);
+//   }
+// }
+
+void print_string(const char* s) {
+    while (*s) { print_char(*s++); }
+}
+
+void print_long(long val) {
+    if (val == 0) { print_char('0'); return; }
+    if (val < 0) { print_char('-'); val = -val; }
+    
+    char buf[32];
+    int i = 0;
+    while (val > 0) {
+        buf[i++] = (val % 10) + '0';
+        val /= 10;
+    }
+    // The digits are backwards, so print them in reverse
+    while (i > 0) {
+        print_char(buf[--i]);
+    }
+}
+
+void debug_printf(const char* str, ...) {
+    __builtin_va_list args;
+    __builtin_va_start(args, str);
+    
+    while (*str) {
+        if (*str == '%') {
+            str++;
+            if (*str == 'd') {
+                // Standard integer
+                print_long((long)__builtin_va_arg(args, int));
+            } else if (*str == 'l') {
+                str++; // Skip the 'l'
+                if (*str == 'd') {
+                    // Long integer (%ld)
+                    print_long(__builtin_va_arg(args, long));
+                }
+            } else if (*str == 'c') {
+                // Character
+                print_char((char)__builtin_va_arg(args, int));
+            } else if (*str == 's') {
+                // String
+                print_string(__builtin_va_arg(args, char*));
+            } else if (*str == '%') {
+                // Escaped percent sign
+                print_char('%');
+            }
+        } else {
+            print_char(*str);
+        }
+        str++;
+    }
+    __builtin_va_end(args);
 }

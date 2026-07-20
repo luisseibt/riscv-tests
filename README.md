@@ -16,10 +16,7 @@ https://github.com/riscv-collab/riscv-gnu-toolchain) package is installed.
     $ git clone https://github.com/riscv/riscv-tests
     $ cd riscv-tests
     $ git submodule update --init --recursive
-    $ autoconf
-    $ ./configure --prefix=$RISCV/target
-    $ make
-    $ make install
+    $ ./run_docker.sh build
 
 The rest of this document describes the format of test programs for the RISC-V
 architecture.
