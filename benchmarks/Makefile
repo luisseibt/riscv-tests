@@ -46,7 +46,7 @@ vec_bmarks = \
 	vec-sgemm \
 	vec-strcmp \
 
-bmarks = $(base_bmarks) $(vec_bmarks)
+bmarks = $(base_bmarks) $(vec_bmarks) dhrystone_core0 dhrystone_core1
 
 #--------------------------------------------------------------------
 # Build rules
@@ -70,8 +70,18 @@ $(1).riscv: $(wildcard $(src_dir)/$(1)/*) $(wildcard $(src_dir)/common/*)
 	$$(RISCV_GCC) $$(incs) $$(RISCV_GCC_OPTS) -march=$(2) -o $$@ $(wildcard $(src_dir)/$(1)/*.c) $(wildcard $(src_dir)/$(1)/*.S) $(wildcard $(src_dir)/common/*.c) $(wildcard $(src_dir)/common/*.S) $$(RISCV_LINK_OPTS)
 endef
 
+
+DHRYSTONE_ASYNC_LINK_OPTS ?= -static -nostdlib -nostartfiles -lm -lgcc -T $(src_dir)/dhrystone_core0/linker_core0.ld
+
+define compile_dhrystone_async
+$(1).riscv: $(wildcard $(src_dir)/$(1)/*) $(wildcard $(src_dir)/common/*)
+	$$(RISCV_GCC) $$(incs) $$(RISCV_GCC_OPTS) -march=$(2) -o $$@ $(wildcard $(src_dir)/$(1)/*.c) $(wildcard $(src_dir)/$(1)/*.S) $(wildcard $(src_dir)/common/*.c) -static -nostdlib -nostartfiles -lm -lgcc -T $(3)
+endef
+
 $(foreach bmark,$(base_bmarks),$(eval $(call compile_template,$(bmark),$(RISCV_MARCH))))
 $(foreach bmark,$(vec_bmarks),$(eval $(call compile_template,$(bmark),$(RISCV_VMARCH))))
+$(eval $(call compile_dhrystone_async,dhrystone_core0,$(RISCV_MARCH),$(src_dir)/dhrystone_core0/linker_core0.ld))
+$(eval $(call compile_dhrystone_async,dhrystone_core1,$(RISCV_MARCH),$(src_dir)/dhrystone_core1/linker_core1.ld))
 
 #------------------------------------------------------------
 # Build and run benchmarks on riscv simulator

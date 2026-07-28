@@ -13,3 +13,11 @@
 /config.status
 /build
 configure 
+benchmarks/tmp/
+benchmarks/bin
+benchmarks/lib
+benchmarks/lib32
+benchmarks/lib64
+benchmarks/libx32
+benchmarks/sbin
+benchmarks/var
