@@ -186,7 +186,7 @@ void print_char(char c) {
     // } else {
     //     SIMDEV_SOUT_CORE1 = c;
     // }
-    WRITE_TO_SIMDEV = c;
+    SIMDEV_SOUT_CORE1 = c;
 }
 // void debug_printf(const char* str, ...)
 // {

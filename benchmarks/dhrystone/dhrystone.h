@@ -438,10 +438,12 @@ struct tms      time_info;
 
 #include <stdio.h>
 #include <string.h>
-#define WRITE_TO_SIMDEV (*(volatile unsigned int*)0x10008028)
+#include "helpers.h"
+// #define WRITE_TO_SIMDEV (*(volatile unsigned int*)0x10008028)
+
 // #define SIMDEV_CORE_DONE (*(volatile unsigned int *)(0x10008008))
-#define SIMDEV_CORE_DONE_ADDR 0x10008000
-#define SIMDEV_CORE_DONE (*(volatile uint32_t *)(SIMDEV_CORE_DONE_ADDR))
+// #define SIMDEV_CORE_DONE_ADDR 0x10008000
+// #define SIMDEV_CORE_DONE (*(volatile uint32_t *)(SIMDEV_CORE_DONE_ADDR))
                 /* for strcpy, strcmp */
 
 #define Null 0 
