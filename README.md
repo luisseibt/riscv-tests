@@ -16,14 +16,39 @@ Building from repository
 
 Dhrystone Benchmark
 -----------------------------
-benchmarks/dhrystone.riscv
-        This elf can be executed on the vcml-pydrofoil virtual prototype with one core 
-        please find the correponding config in the vcml-pydrofoil repository under benchmarks/dhrystone   
+Singlecore:
+        building it:
+                benchmarks/dhrystone.riscv
+                This elf can be executed on the vcml-pydrofoil virtual prototype with one core 
 
-benchmarks/dhrystone_core0.riscv
-        This elf is supposed to be executed on core0 of the virtual prototype with 2 core
-        please find the correponding config in the vcml-pydrofoil repository under benchmarks/dhrystone_2cores
+        Configuration file:
+                vcml-pydrofoil/benchmark/dhrystone/dhrystone.cfg
+                please put the .elf (dhrystone.riscv) in the build folder located at vcml-pydrofoil/benchmark/dhrystone/build
 
-benchmarks/dhrystone_core0.riscv
-        This elf is supposed to be executed on core1 of the virtual prototype with 2 cores
-        please find the correponding config in the vcml-pydrofoil repository under benchmarks/dhrystone_2cores
+
+Mutlicore:
+        building it 
+                benchmarks/dhrystone_core0.riscv
+                This elf is supposed to be executed on core0 of the virtual prototype with 2 core
+                
+                benchmarks/dhrystone_core1.riscv
+                This elf is supposed to be executed on core1 of the virtual prototype with 2 cores
+        
+        Configuration file:
+                vcml-pydrofoil/benchmark/dhrystone_2cores/dhrystone.cfg
+                please put the .elf(s) (dhrystone.riscv) in the build folder located at vcml-pydrofoil/benchmark/dhrystone_2cores/build
+
+
+
+Multicore_simdev:
+        Gives multicore software an exit point
+        write core_id to SIMDEV_CORE_DONE to signal that core: core_id has finished execution
+
+        system.multicore_simdev.write_to_file = true -> logs for core_0 are written to logs/core0_output.txt
+                                                     -> logs for core_1 are written to logs/core1_output.txt
+        if logs are supposed to be disabled, please uncomment:
+                SIMDEV_SOUT_CORE0 = c; 
+                        in print_char() in:
+                        - /home/seibt/thesis/riscv-tests/benchmarks/dhrystone_core0/dhrystone.c
+                        - /home/seibt/thesis/riscv-tests/benchmarks/dhrystone_core1/dhrystone.c
+
