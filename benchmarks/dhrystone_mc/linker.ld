@@ -1,10 +1,14 @@
 OUTPUT_ARCH("riscv")
 ENTRY(_start)
 
+/* One ELF per core, each in its own 64K slice of the RAM. The Makefile links
+ * core i with -Wl,--defsym=RAM_ORIGIN=0x800i0000, i.e. core 0 at 0x80000000,
+ * core 1 at 0x80010000, ..., core 7 at 0x80070000. The VP starts core i at
+ * that address (system.core<i>.pc).
+ */
 MEMORY
 {
-  /* Kern 0 bekommt die erste Hälfte: 64K ab 0x80000000 */
-  ram (rwx) : ORIGIN = 0x80000000, LENGTH = 64K
+  ram (rwx) : ORIGIN = RAM_ORIGIN, LENGTH = 64K
 }
 
 SECTIONS

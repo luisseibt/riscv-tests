@@ -46,7 +46,12 @@ vec_bmarks = \
 	vec-sgemm \
 	vec-strcmp \
 
-bmarks = $(base_bmarks) $(vec_bmarks) dhrystone_core0 dhrystone_core1
+# Multicore Dhrystone: one ELF per core (dhrystone_core<i>.riscv), all built
+# from dhrystone_mc/, see compile_dhrystone_mc below
+dhrystone_mc_cores = 0 1 2 3 4 5 6 7
+dhrystone_mc_bmarks = $(addprefix dhrystone_core,$(dhrystone_mc_cores))
+
+bmarks = $(base_bmarks) $(vec_bmarks) $(dhrystone_mc_bmarks)
 
 #--------------------------------------------------------------------
 # Build rules
@@ -62,7 +67,8 @@ RISCV_MARCH ?= rv$(XLEN)gc
 RISCV_VMARCH ?= rv$(XLEN)gcv
 RISCV_SIM ?= spike --isa=rv$(XLEN)gcv
 
-incs  += -I$(src_dir)/../env -I$(src_dir)/common $(addprefix -I$(src_dir)/, $(bmarks))
+# dhrystone_mc/ also provides helpers.h (multicore_simdev) to the single-core dhrystone
+incs  += -I$(src_dir)/../env -I$(src_dir)/common $(addprefix -I$(src_dir)/, $(base_bmarks) $(vec_bmarks) dhrystone_mc)
 objs  :=
 
 define compile_template
@@ -71,17 +77,16 @@ $(1).riscv: $(wildcard $(src_dir)/$(1)/*) $(wildcard $(src_dir)/common/*)
 endef
 
 
-DHRYSTONE_ASYNC_LINK_OPTS ?= -static -nostdlib -nostartfiles -lm -lgcc -T $(src_dir)/dhrystone_core0/linker_core0.ld
-
-define compile_dhrystone_async
-$(1).riscv: $(wildcard $(src_dir)/$(1)/*) $(wildcard $(src_dir)/common/*)
-	$$(RISCV_GCC) $$(incs) $$(RISCV_GCC_OPTS) -march=$(2) -o $$@ $(wildcard $(src_dir)/$(1)/*.c) $(wildcard $(src_dir)/$(1)/*.S) $(wildcard $(src_dir)/common/*.c) -static -nostdlib -nostartfiles -lm -lgcc -T $(3)
+# dhrystone_core<i>.riscv: dhrystone_mc/ linked to its own 64K slice of the RAM
+# at 0x800<i>0000 (RAM_ORIGIN in dhrystone_mc/linker.ld)
+define compile_dhrystone_mc
+dhrystone_core$(1).riscv: $(wildcard $(src_dir)/dhrystone_mc/*) $(wildcard $(src_dir)/common/*)
+	$$(RISCV_GCC) $$(incs) $$(RISCV_GCC_OPTS) -march=$(RISCV_MARCH) -o $$@ $(wildcard $(src_dir)/dhrystone_mc/*.c) $(wildcard $(src_dir)/dhrystone_mc/*.S) $(wildcard $(src_dir)/common/*.c) -static -nostdlib -nostartfiles -lm -lgcc -Wl,--defsym=RAM_ORIGIN=0x800$(1)0000 -T $(src_dir)/dhrystone_mc/linker.ld
 endef
 
 $(foreach bmark,$(base_bmarks),$(eval $(call compile_template,$(bmark),$(RISCV_MARCH))))
 $(foreach bmark,$(vec_bmarks),$(eval $(call compile_template,$(bmark),$(RISCV_VMARCH))))
-$(eval $(call compile_dhrystone_async,dhrystone_core0,$(RISCV_MARCH),$(src_dir)/dhrystone_core0/linker_core0.ld))
-$(eval $(call compile_dhrystone_async,dhrystone_core1,$(RISCV_MARCH),$(src_dir)/dhrystone_core1/linker_core1.ld))
+$(foreach core,$(dhrystone_mc_cores),$(eval $(call compile_dhrystone_mc,$(core))))
 
 #------------------------------------------------------------
 # Build and run benchmarks on riscv simulator

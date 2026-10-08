@@ -180,13 +180,14 @@ Enumeration Enum_Par_Val;
     return (false);
 } /* Func_3 */
 
+// The multicore_simdev has an output register for core 0 and core 1 only,
+// the other cores stay silent.
 void print_char(char c) {
-    // if (hartid == 0) {
-    //     SIMDEV_SOUT_CORE0 = c;
-    // } else {
-    //     SIMDEV_SOUT_CORE1 = c;
-    // }
-    SIMDEV_SOUT_CORE0 = c;
+    switch(read_hartid()) {
+    case 0: SIMDEV_SOUT_CORE0 = c; break;
+    case 1: SIMDEV_SOUT_CORE1 = c; break;
+    default: break;
+    }
 }
 // void debug_printf(const char* str, ...)
 // {
